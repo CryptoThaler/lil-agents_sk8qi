@@ -59,7 +59,7 @@ Open the included Xcode project in Xcode and hit Run.
 
 A downloadable archive is included at:
 
-`dist/lil_sk8ers-1.0-axo-mudbug-macos.zip`
+`dist/lil_sk8ers-2.0-axo-mudbug-macos.zip`
 
 ## interface direction
 

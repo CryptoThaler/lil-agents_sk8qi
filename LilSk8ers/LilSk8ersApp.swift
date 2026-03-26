@@ -14,6 +14,8 @@ struct LilSk8ersApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var controller: LilSk8ersController?
     var statusItem: NSStatusItem?
+    var buildOverlayItem: NSMenuItem?
+    var fullGameItem: NSMenuItem?
     let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -44,6 +46,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let char2Item = NSMenuItem(title: "Mudbug", action: #selector(toggleChar2), keyEquivalent: "2")
         char2Item.state = .on
         menu.addItem(char2Item)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let buildOverlayItem = NSMenuItem(title: "Ramp Build Overlay", action: #selector(toggleBuildOverlay(_:)), keyEquivalent: "b")
+        buildOverlayItem.target = self
+        buildOverlayItem.state = controller?.buildOverlayEnabled == true ? .on : .off
+        menu.addItem(buildOverlayItem)
+        self.buildOverlayItem = buildOverlayItem
+
+        let fullGameItem = NSMenuItem(title: "Full Game Mode", action: #selector(toggleFullGame(_:)), keyEquivalent: "g")
+        fullGameItem.target = self
+        fullGameItem.state = controller?.fullGameModeEnabled == true ? .on : .off
+        menu.addItem(fullGameItem)
+        self.fullGameItem = fullGameItem
+
+        let resetRampsItem = NSMenuItem(title: "Reset Ramps", action: #selector(resetRamps), keyEquivalent: "r")
+        resetRampsItem.target = self
+        menu.addItem(resetRampsItem)
+
+        let chatItem = NSMenuItem(title: "Chat", action: nil, keyEquivalent: "")
+        let chatMenu = NSMenu()
+        let axoChat = NSMenuItem(title: "Open AXO Chat", action: #selector(openAxoChat), keyEquivalent: "")
+        axoChat.target = self
+        chatMenu.addItem(axoChat)
+        let mudbugChat = NSMenuItem(title: "Open Mudbug Chat", action: #selector(openMudbugChat), keyEquivalent: "")
+        mudbugChat.target = self
+        chatMenu.addItem(mudbugChat)
+        chatItem.submenu = chatMenu
+        menu.addItem(chatItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -166,6 +197,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         controller?.characters.forEach { $0.resetSessionForProviderChange() }
+    }
+
+    @objc func toggleBuildOverlay(_ sender: NSMenuItem) {
+        let enabled = sender.state != .on
+        controller?.setBuildOverlayEnabled(enabled)
+        sender.state = enabled ? .on : .off
+    }
+
+    @objc func toggleFullGame(_ sender: NSMenuItem) {
+        let enabled = sender.state != .on
+        controller?.setFullGameMode(enabled)
+        sender.state = enabled ? .on : .off
+    }
+
+    @objc func resetRamps() {
+        controller?.resetRamps()
+    }
+
+    @objc func openAxoChat() {
+        controller?.openChat(for: .axo)
+        fullGameItem?.state = .off
+    }
+
+    @objc func openMudbugChat() {
+        controller?.openChat(for: .mudbug)
+        fullGameItem?.state = .off
     }
 
     @objc func toggleChar1(_ sender: NSMenuItem) {

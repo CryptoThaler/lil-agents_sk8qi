@@ -3,7 +3,10 @@ import AppKit
 
 class WalkerCharacter: NSObject {
     let videoName: String
+    var skaterIdentity: SkaterIdentity = .axo
     var window: NSWindow!
+    var hostView: CharacterContentView?
+    var accessoryView: CharacterAccessoryView?
     var playerLayer: AVPlayerLayer!
     var queuePlayer: AVQueuePlayer!
     var looper: AVPlayerLooper!
@@ -58,6 +61,12 @@ class WalkerCharacter: NSObject {
     var usageLabel: NSTextField?
     var resetButton: NSButton?
     private var lastUsageRefresh: CFTimeInterval = 0
+    var overlayGameMode: GameMode = .normal
+    var overlaySkaterState: SkaterState = .roaming
+    var overlayPhysicsState: PhysicsState?
+    var isPlayerControlled = false
+    var buildPulse: CGFloat = 0
+    private var presentationRotationDegrees: CGFloat = 0
 
     init(videoName: String) {
         self.videoName = videoName
@@ -104,15 +113,27 @@ class WalkerCharacter: NSObject {
         hostView.character = self
         hostView.wantsLayer = true
         hostView.layer?.backgroundColor = NSColor.clear.cgColor
+        hostView.layer?.masksToBounds = false
         hostView.layer?.addSublayer(playerLayer)
+        self.hostView = hostView
+
+        let accessoryView = CharacterAccessoryView(frame: hostView.bounds)
+        accessoryView.autoresizingMask = [.width, .height]
+        accessoryView.character = self
+        hostView.addSubview(accessoryView)
+        self.accessoryView = accessoryView
 
         window.contentView = hostView
         window.orderFrontRegardless()
+        applyPresentationTransform()
     }
 
     // MARK: - Click Handling & Popover
 
     func handleClick() {
+        if controller?.handleCharacterClick(self) == true {
+            return
+        }
         if isOnboarding {
             openOnboardingPopover()
             return
@@ -834,14 +855,22 @@ class WalkerCharacter: NSObject {
     }
 
     func updateFlip() {
+        applyPresentationTransform()
+    }
+
+    private func applyPresentationTransform() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        if goingRight {
-            playerLayer.transform = CATransform3DIdentity
-        } else {
-            playerLayer.transform = CATransform3DMakeScale(-1, 1, 1)
+        let direction: CGFloat = goingRight ? 1 : -1
+        var transform = CATransform3DIdentity
+        transform = CATransform3DScale(transform, direction, 1, 1)
+        if presentationRotationDegrees != 0 {
+            transform = CATransform3DRotate(transform, presentationRotationDegrees * .pi / 180.0, 0, 0, 1)
         }
+        playerLayer.transform = transform
         playerLayer.frame = CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight)
+        accessoryView?.layer?.transform = transform
+        accessoryView?.frame = hostView?.bounds ?? CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight)
         CATransaction.commit()
     }
 
@@ -878,6 +907,26 @@ class WalkerCharacter: NSObject {
 
     func update(dockX: CGFloat, dockWidth: CGFloat, dockTopY: CGFloat) {
         currentTravelDistance = max(dockWidth - displayWidth, 0)
+
+        if overlayGameMode == .fullGame, let physics = overlayPhysicsState {
+            if !isIdleForPopover {
+                queuePlayer.play()
+            }
+            presentationRotationDegrees = physics.rotationDegrees
+            goingRight = physics.facingRight
+            applyPresentationTransform()
+            positionProgress = currentTravelDistance > 0 ? min(max((physics.position.x - dockX) / currentTravelDistance, 0), 1) : 0
+            window.setFrameOrigin(physics.position)
+            updateThinkingBubble()
+            refreshOverlayArt()
+            return
+        }
+
+        if presentationRotationDegrees != 0 {
+            presentationRotationDegrees = 0
+            applyPresentationTransform()
+        }
+
         if isIdleForPopover {
             let travelDistance = currentTravelDistance
             let x = dockX + travelDistance * positionProgress + currentFlipCompensation
@@ -932,5 +981,27 @@ class WalkerCharacter: NSObject {
         }
 
         updateThinkingBubble()
+        refreshOverlayArt()
+    }
+
+    func refreshOverlayArt() {
+        accessoryView?.needsDisplay = true
+    }
+
+    func resetForAmbientMode() {
+        presentationRotationDegrees = 0
+        overlayPhysicsState = nil
+        overlayGameMode = .normal
+        overlaySkaterState = .roaming
+        buildPulse = 0
+        updateFlip()
+        if !isIdleForPopover {
+            isWalking = false
+            isPaused = true
+            queuePlayer.pause()
+            queuePlayer.seek(to: .zero)
+            pauseEndTime = CACurrentMediaTime() + Double.random(in: 1.0...3.0)
+        }
+        refreshOverlayArt()
     }
 }

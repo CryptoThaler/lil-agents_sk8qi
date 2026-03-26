@@ -114,7 +114,6 @@ final class CharacterAccessoryView: NSView {
         let headRect = CGRect(x: bounds.width * 0.46, y: bounds.height * 0.60, width: bounds.width * 0.22, height: bounds.height * 0.18)
         let skin = NSColor(red: 0.99, green: 0.72, blue: 0.86, alpha: 0.95)
         let gillColor = NSColor(red: 0.92, green: 0.24, blue: 0.42, alpha: 0.9)
-        let tailMask = NSColor(red: 0.31, green: 0.78, blue: 0.72, alpha: 0.92)
 
         let face = NSBezierPath(roundedRect: headRect, xRadius: headRect.width * 0.24, yRadius: headRect.width * 0.24)
         skin.setFill()
@@ -145,11 +144,6 @@ final class CharacterAccessoryView: NSView {
                 petal.fill()
             }
         }
-
-        let coverRect = CGRect(x: bounds.width * 0.58, y: bounds.height * 0.37, width: bounds.width * 0.13, height: bounds.height * 0.20)
-        let cover = NSBezierPath(roundedRect: coverRect, xRadius: 10, yRadius: 10)
-        tailMask.setFill()
-        cover.fill()
     }
 
     private func drawMudbugAccents(buildPulse: CGFloat) {

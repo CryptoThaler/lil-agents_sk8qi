@@ -23,7 +23,7 @@ This fork keeps the original interaction model intact while reshaping the visual
 
 ### AXO
 
-![AXO](generated-axo.png)
+![AXO](generated-axo-v2.png)
 
 `AXO` is an axolotl in teal streetwear with a gold-accent board, built as the softer and more playful skater in the pair. AXO sets the tone for the dock: friendly, relaxed, expressive, and always ready to spin up a conversation with Claude or Codex.
 

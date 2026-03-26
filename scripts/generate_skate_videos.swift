@@ -371,10 +371,7 @@ func drawCharacter(palette: CharacterPalette, time: Double, on canvas: CGSize) {
         drawChain(center: CGPoint(x: bodyCenter.x, y: bodyCenter.y + 276 + bounce))
         drawHandsAndClaws(center: torsoCenter, palette: palette, bounce: bounce)
 
-        if palette.isAxolotl {
-            let tail = roundedRect(center: CGPoint(x: bodyCenter.x + 22, y: 622 + bounce), width: 64, height: 260, radius: 28)
-            fill(tail, color: palette.skin.withAlphaComponent(0.82))
-        } else {
+        if !palette.isAxolotl {
             let shell = roundedRect(center: CGPoint(x: bodyCenter.x, y: bodyCenter.y + 162 + bounce), width: 164, height: 188, radius: 54)
             fill(shell, color: palette.shellDark.withAlphaComponent(0.18))
         }

@@ -1,6 +1,6 @@
 # lil_sk8ers
 
-![lil_sk8ers](LilSk8ers.png)
+![lil_sk8ers](LilSk8ers.png) 
 
 `lil_sk8ers` is a customized dockside AI companion app built around two streetwear skaters cruising on transparent skateboard loops above your macOS dock.
 
